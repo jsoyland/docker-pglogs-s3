@@ -27,7 +27,7 @@ The architecture looks like:
 
 # Quick Start
 
-`docker run -d --env-file=service.env tozny/docker-pgdump-s3`
+`docker run -d --env-file=service.env tozny/pgdump-s3`
 
 Or with the environment variables spelled out:
 
@@ -41,10 +41,11 @@ docker run -d \
   -e S3_REGION=us-west-2 \
   -e AWS_ACCESS_KEY_ID=AK \
   -e AWS_SECRET_ACCESS_KEY=SK \
-  -e PG_PARAMS="-Fp -a"
-  -e BACKUP_EXTENSION=backup
-  -e CRON_SCHEDULE="* * * * *"
-  # only specify if you want AES encrypted backups, otherwise leave out
-  -e ENCRYPTION_PASSWORD=password
+  -e PG_PARAMS="-Fp -a" \
+  -e BACKUP_EXTENSION=backup \ 
+  -e CRON_SCHEDULE="* * * * *" \
+  # only specify if you want AES encrypted backups, otherwise leave out \
+  -e ENCRYPTION_PASSWORD=password \
+  tozny/pgdump-s3
 ```
 

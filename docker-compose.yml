@@ -1,0 +1,17 @@
+# Local Development Docker image specifics
+
+version: '2'
+
+services:
+
+  backup:
+    build: ./
+    depends_on:
+      - db
+    env_file:
+      - service.env
+
+  db:
+    image: postgres:alpine
+    environment:
+      POSTGRES_PASSWORD: password

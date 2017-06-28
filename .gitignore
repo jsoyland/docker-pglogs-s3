@@ -39,3 +39,4 @@ jspm_packages
 
 *.env
 x.env
+creds.sh

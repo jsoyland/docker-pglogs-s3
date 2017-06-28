@@ -37,6 +37,5 @@ jspm_packages
 .node_repl_history
 *.zip
 
-*.env
 x.env
 creds.sh

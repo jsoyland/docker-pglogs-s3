@@ -5,7 +5,12 @@ const handler = require('./lib/handler')
 
 module.exports.handler = handler
 
-new CronJob('*/5 * * * *', function(){
+// remove quotes around cron schedule
+var cronSchedule = process.env.CRON_SCHEDULE.replace(/["']+/g, '')
+
+console.log("Starting backup service on cron schedule: " + cronSchedule)
+
+new CronJob(cronSchedule, function(){
   console.log('Running cron task at ' + new Date())
   // run the backup script
   handler(null, null, function(){})

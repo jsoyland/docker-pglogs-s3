@@ -9,6 +9,7 @@
     "through2": "^2.0.3"
   },
   "devDependencies": {
+    "cron": "^1.2.1",
     "aws-sdk": "^2.45.0",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",

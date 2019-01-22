@@ -43,7 +43,9 @@ docker run -d \
   -e AWS_SECRET_ACCESS_KEY=SK \
   -e PG_PARAMS="-Fp -a" \
   -e BACKUP_EXTENSION=backup \ 
+  -e S3_STORAGE_CLASS=GLACIER \
   -e CRON_SCHEDULE="* * * * *" \
+  -e S3_URL="s3.us-west-2.amazonaws.com" \
   # only specify if you want AES encrypted backups, otherwise leave out \
   -e ENCRYPTION_PASSWORD=password \
   tozny/pgdump-s3

@@ -9,8 +9,9 @@
     "through2": "^3.0.0"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.290.0",
+    "@aws-sdk/lib-storage": "^3.290.0",
     "cron": "^1.2.1",
-    "aws-sdk": "^2.45.0",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "coveralls": "^2.13.0",
@@ -23,7 +24,8 @@
     "mock-spawn": "^0.2.6",
     "nyc": "^10.2.0",
     "rewire": "^2.5.2",
-    "sinon": "^2.1.0"
+    "sinon": "^2.1.0",
+    "stream": "^0.0.2"
   },
   "scripts": {
     "test": "mocha test",

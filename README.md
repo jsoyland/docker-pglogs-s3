@@ -1,52 +1,68 @@
-# docker-pgdump-s3
+# docker-pglogs-s3
 
 # Overview
 
-A docker container that runs pg_dump and streams the output to s3.
+A docker container that streams postgres logs to s3.
 
 It run inside a docker container on a cron schedule that is specified by the `CRON_SCHEDULE` environment variable.
 
-The original project was designed to run in AWS lambda. Our requirements meant went we needed more than 5 minutes of execution
-time to run `pg_dump`. Therefore, the service has been altered to run on a cron schedule.
-
-The service utilizes AWS S3 multi-part uploads & streaming. This means there is no need for large amounts of local storage where
-the docker container is running, as the data is proxied directly to AWS without being written to disk. This results in a low memory footprint (~50mb) for the running service during backup, and fairly low CPU usage (~5% when testing during dumping).
-
-The architecture looks like:
-
-```
-[Postgres DB] ---> [docker-pgdump-s3] ---> [AWS S3 bucket]
-```
-
+This was forked from https://github.com/seated/docker-pgdump-s3, but modified to instead of running pg_dump just
+cats yesterday's postgres logfile.  There's probably no reason for this to use streaming unless this were modified
+to tail the current logfile instead, but it was simple enough to modify the existing container for this purpose.
 
 # Requirements
 
 - S3 bucket
 - AWS credentials to push to S3 bucket
-- Postgres host, username, password
+- Path to Postgres logs.
+
+To get the path to the Postgres logs, query Postgres:
+
+```
+SELECT
+    ddir.setting || '/' || logdir.setting
+FROM (
+    SELECT
+        setting
+    FROM
+        pg_settings
+    WHERE
+        category = 'File Locations'
+        AND name = 'data_directory'
+    LIMIT 1) AS ddir,
+    (
+        SELECT
+            setting
+        FROM
+            pg_settings
+        WHERE
+            category = 'Reporting and Logging / Where to Log'
+            AND setting = 'log'
+        LIMIT 1) AS logdir;
+```
+
+The log filename is formatted by the day of the week, ie "postgresql-Mon.log" but when it's copied to S3 it's changed to the date.
 
 # Quick Start
 
-`docker run -d --env-file=service.env tozny/pgdump-s3`
-
-Or with the environment variables spelled out:
+To run at 1am daily inside pgpodman, the intended use of this container:
+```
+select run_container('-dt -v /var/lib/pgsql/15/data/log:/pglogs  -e S3_BUCKET=jessebucket -e S3_REGION=us-east-1 -e AWS_ACCESS_KEY_ID=AK -e AWS_SECRET_ACCESS_KEY=s01 -e BACKUP_EXTENSION=log -e S3_STORAGE_CLASS=STANDARD -e CRON_SCHEDULE="0 1 * * *" -e S3_URL="s3://jessebucket/pglogs/" --privileged docker.io/jsoyland/docker-pglogs-s3');
 
 ```
-docker run -d \
-  -e PGPASSWORD=password \
-  -e PGDATABASE=mydatabase \
-  -e PGUSER=root \
-  -e PGHOST=localhost \
-  -e S3_BUCKET=muhbucket \
-  -e S3_REGION=us-west-2 \
-  -e AWS_ACCESS_KEY_ID=AK \
-  -e AWS_SECRET_ACCESS_KEY=SK \
-  -e PG_PARAMS="-Fp -a" \
-  -e BACKUP_EXTENSION=backup \
-  -e S3_STORAGE_CLASS=GLACIER \
-  -e CRON_SCHEDULE="* * * * *" \
-  -e S3_URL="s3-fips.us-west-2.amazonaws.com" \
-  # only specify if you want AES encrypted backups, otherwise leave out \
-  -e ENCRYPTION_PASSWORD=password \
-  tozny/pgdump-s3
+
+For running in podman/docker directly:
+```
+podman run -dt \
+   -v /var/lib/pgsql/15/data/log:/pglogs \
+   -e S3_BUCKET=jessebucket \
+   -e S3_REGION=us-east-1 \
+   -e AWS_ACCESS_KEY_ID=AK \
+   -e AWS_SECRET_ACCESS_KEY=s0 \
+   -e BACKUP_EXTENSION=log \
+   -e S3_STORAGE_CLASS=GLACIER \
+   -e CRON_SCHEDULE="0 1 * * *" \
+   -e S3_URL="s3://jessebucket/folder/" \
+   --privileged \
+   docker.io/jsoyland/docker-pglogs-s3
 ```
